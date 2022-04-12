@@ -1,5 +1,8 @@
 using FinalProject;
+using FinalProject.Managers;
+using FinalProject.Repositories;
 using Microsoft.EntityFrameworkCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +19,15 @@ builder.Services.AddDbContext<FinalProjectContext>(
     {
         options.UseSqlServer(connectionString);
     });
+
+builder.Services.AddTransient<IConcertsRepository, ConcertsRepository>();
+builder.Services.AddTransient<IConcertsManager, ConcertsManager>();
+
+builder.Services.AddTransient<IOrganizersRepository, OrganizersRepository>();
+builder.Services.AddTransient<IOrganizersManager, OrganizersManager>();
+
+builder.Services.AddTransient<IObiectsRepository, ObiectsRepository>();
+builder.Services.AddTransient<IObiectsManager, ObiectsManager>();
 
 //Database connection
 //builder.Services.AddDbContext<FinalProjectContext>(options => 
