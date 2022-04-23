@@ -29,6 +29,13 @@ builder.Services.AddTransient<IOrganizersManager, OrganizersManager>();
 builder.Services.AddTransient<IObiectsRepository, ObiectsRepository>();
 builder.Services.AddTransient<IObiectsManager, ObiectsManager>();
 
+builder.Services.AddTransient<IGiftsRepository, GiftsRepository>();
+builder.Services.AddTransient<IGiftsManager, GiftsManager>();
+
+builder.Services.AddTransient<ISongsRepository, SongsRepository>();
+builder.Services.AddTransient<ISongsManager, SongsManager>();
+
+
 //Database connection
 //builder.Services.AddDbContext<FinalProjectContext>(options => 
 //{
