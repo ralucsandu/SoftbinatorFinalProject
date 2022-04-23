@@ -35,6 +35,8 @@ builder.Services.AddTransient<IGiftsManager, GiftsManager>();
 builder.Services.AddTransient<ISongsRepository, SongsRepository>();
 builder.Services.AddTransient<ISongsManager, SongsManager>();
 
+builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
+builder.Services.AddTransient<IStudentsManager, StudentsManager>();
 
 //Database connection
 //builder.Services.AddDbContext<FinalProjectContext>(options => 
