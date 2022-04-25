@@ -4,13 +4,47 @@ using FinalProject.Repositories;
 using Microsoft.IdentityModel.Tokens; 
 using Microsoft.EntityFrameworkCore;
 using FinalProject.Entities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(c =>
+{
+c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+{
+    Description = @"JWT Authorization header using the Bearer scheme. \r\n\r\n
+                        Enter 'Bearer' [space] and then your token in the text input below.
+                        \r\n\r\nExample: 'Bearer 12345abcdef'",
+    Name = "Authorization",
+    In = ParameterLocation.Header,
+    Type = SecuritySchemeType.ApiKey,
+    Scheme = "Bearer"
+});
+
+c.AddSecurityRequirement(new OpenApiSecurityRequirement
+{
+    {
+        new OpenApiSecurityScheme
+        {
+            Reference = new OpenApiReference
+            {
+                Type = ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            },
+            Scheme = "oauth2",
+            Name="Bearer",
+            In = ParameterLocation.Header
+        },
+        new List<string>()
+                    }
+    });
+});
 
 string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FinalProjectContext>(
@@ -19,8 +53,38 @@ builder.Services.AddDbContext<FinalProjectContext>(
         options.UseSqlServer(connectionString);
     });
 
-builder.Services.AddIdentity<User, Role>()
-    .AddEntityFrameworkStores<FinalProjectContext>();
+
+builder.Services
+                .AddAuthentication(options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
+                .AddJwtBearer("AuthScheme", options =>
+                {
+                    options.SaveToken = true;
+                    var secret = builder.Configuration.GetSection("Jwt").GetSection("SecretKey").Get<String>();
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuerSigningKey = true,
+                        ValidateLifetime = true,
+                        RequireExpirationTime = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret)),
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ClockSkew = TimeSpan.Zero
+                    };
+                });
+
+builder.Services.AddAuthorization(opt =>
+{
+    opt.AddPolicy("BasicUser", policy => policy.RequireRole("BasicUser").RequireAuthenticatedUser().AddAuthenticationSchemes("AuthScheme").Build());
+    opt.AddPolicy("Admin", policy => policy.RequireRole("Admin").RequireAuthenticatedUser().AddAuthenticationSchemes("AuthScheme").Build());
+
+});
+builder.Services.AddControllersWithViews()
+        .AddNewtonsoftJson(options =>
+        options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
 
 builder.Services.AddTransient<IConcertsRepository, ConcertsRepository>();
 builder.Services.AddTransient<IConcertsManager, ConcertsManager>();
@@ -40,6 +104,8 @@ builder.Services.AddTransient<ISongsManager, SongsManager>();
 builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
 builder.Services.AddTransient<IStudentsManager, StudentsManager>();
 
+builder.Services.AddTransient<IAuthenticationManager, AuthenticationManager>();
+builder.Services.AddTransient<ITokenManager, TokenManager>();
 
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<FinalProjectContext>();
