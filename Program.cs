@@ -1,12 +1,11 @@
 using FinalProject;
 using FinalProject.Managers;
 using FinalProject.Repositories;
+using Microsoft.IdentityModel.Tokens; 
 using Microsoft.EntityFrameworkCore;
-
+using FinalProject.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddControllers();
 
@@ -19,6 +18,9 @@ builder.Services.AddDbContext<FinalProjectContext>(
     {
         options.UseSqlServer(connectionString);
     });
+
+builder.Services.AddIdentity<User, Role>()
+    .AddEntityFrameworkStores<FinalProjectContext>();
 
 builder.Services.AddTransient<IConcertsRepository, ConcertsRepository>();
 builder.Services.AddTransient<IConcertsManager, ConcertsManager>();
@@ -37,6 +39,10 @@ builder.Services.AddTransient<ISongsManager, SongsManager>();
 
 builder.Services.AddTransient<IStudentsRepository, StudentsRepository>();
 builder.Services.AddTransient<IStudentsManager, StudentsManager>();
+
+
+builder.Services.AddIdentity<User, Role>()
+    .AddEntityFrameworkStores<FinalProjectContext>();
 
 //Database connection
 //builder.Services.AddDbContext<FinalProjectContext>(options => 
