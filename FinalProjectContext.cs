@@ -1,10 +1,19 @@
-﻿using FinalProject.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using FinalProject.Entities;
 
 namespace FinalProject
 {
-    public class FinalProjectContext : DbContext
+    public class FinalProjectContext : IdentityDbContext<User, Role, string, IdentityUserClaim<string>,
+        UserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
     {
+        public FinalProjectContext(DbContextOptions<FinalProjectContext> options) : base(options) { }
         public DbSet<Organizer> Organizers { get; set; }
         public DbSet<Concert> Concerts { get; set; }
         public DbSet<Gift> Gifts { get; set; }
@@ -14,16 +23,34 @@ namespace FinalProject
         public DbSet<ConcertStudent> ConcertsStudents { get; set; }
         public DbSet<StudentGift> StudentsGifts { get; set; }
         public DbSet<StudentSong> StudentsSongs { get; set; }
-
-    public FinalProjectContext(DbContextOptions options) : base(options)
-    {
-    }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        base.OnModelCreating(builder);
 
-        //one to one
-        builder.Entity<Organizer>()
+        builder.Entity<User>
+          (b =>
+          {
+           b.HasMany(e => e.UserRoles)
+            .WithOne(e => e.User)
+            .HasForeignKey(ur => ur.UserId)
+            .IsRequired();
+            });
+
+         builder.Entity<Role>
+            (b =>
+            {
+             b.HasMany(e => e.UserRoles)
+              .WithOne(e => e.Role)
+              .HasForeignKey(ur => ur.RoleId)
+              .IsRequired();
+            });
+
+            //one to one
+            builder.Entity<Organizer>()
             .HasOne(org => org.Concert)
             .WithOne(concert => concert.Organizer);
 
@@ -70,7 +97,6 @@ namespace FinalProject
             .WithMany(s => s.StudentsSongs)
             .HasForeignKey(ss => ss.SongId);
 
-        base.OnModelCreating(builder);
         }
     }
 }
