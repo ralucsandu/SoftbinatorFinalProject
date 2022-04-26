@@ -1,6 +1,7 @@
 using FinalProject.Entities;
 using FinalProject.Managers;
 using FinalProject.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ namespace FinalProject.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = "Admin")]
         public async Task<IActionResult> GetSongs()
         {
             var songs = manager.GetSongs();
